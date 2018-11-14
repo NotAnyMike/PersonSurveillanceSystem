@@ -14,4 +14,6 @@ these are the results
 | BoW with SIFT attributes | No | 32% |
 | BoW with SIFT attributes | Yes| 32% |
 | SIFT attributes | Yes | 27% |
-| SIFT attributes | No | 27% |
+| SIFT attributes | No | 36% |
+
+The biggest mAP comes from a classifier only using SIFT features, with binSize of 8 and step of 5

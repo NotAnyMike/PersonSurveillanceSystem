@@ -61,7 +61,7 @@ load('./data/person_attribute_recognition/person_attribute_te.mat')
 % BoW visual representation (Or any other better representation)
 
 model_name = "sift"; % "default" "bow" "bow_sift" "sift"
-useCrossVal = 'on'; % "on" or "off"
+useCrossVal = 'off'; % "on" or "off"
 
 if strcmp(model_name, 'bow')
     fprintf("using bow\n")
