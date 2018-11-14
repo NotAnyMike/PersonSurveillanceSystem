@@ -1,10 +1,6 @@
-function [train_data,label] = ExtractFeatureReid(images, imsize, vocabulary, NumBins,BlockSize,CellSize,num_blocks,using_bow, class)
-
-    if nargin <= 8 % 2 originally
-        class = 'None';
-        label = [];
-    end
+function train_data = ExtractFeatureReid(images, imsize, vocabulary, NumBins,BlockSize,CellSize,num_blocks)
     
+    using_bow = true;
     dir = pwd();
     num = length(images);
     train_data = []; % to hold all the HoG for training
@@ -30,16 +26,8 @@ function [train_data,label] = ExtractFeatureReid(images, imsize, vocabulary, Num
             [~,min_index] = min(d);
             tmp = hist(min_index,size(vocabulary,2));
         else
-            [~, features] = vl_dsift(single(img),'Step',step_p,'size', binSize,'fast');
+            [~, tmp] = vl_dsift(single(img),'Step',step_p,'size', binSize,'fast');
         end
         
         train_data = [train_data;tmp]; 
     end 
-    
-    num = size(train_data,1);
-    if strcmp(class, 'pos')
-        label = ones(num,1);
-    end
-    if strcmp(class, 'neg')
-        label = zeros(num,1);
-    end

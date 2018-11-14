@@ -3,8 +3,6 @@ function dictionary = codebook(images,num_of_words,NumBins,BlockSize,CellSize,nu
 fprintf('\nvocabulary\n');
 num = size(images,1);
 container = [];
-step_p = 30;
-binSize = 20;
 [height,width,~] = size(images{1});
 
 using_hog = true;

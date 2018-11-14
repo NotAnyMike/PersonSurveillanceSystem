@@ -33,11 +33,11 @@ resize_size=[128 64];
 
 
 disp('Person Attribute:Extracting features..')
-
+load('./data/person_attribute_recognition/person_attribute_tr.mat')
 
 Xtr = [];
 Xte = [];
-load('./data/person_attribute_recognition/person_attribute_tr.mat')
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Loading the training data
@@ -60,24 +60,27 @@ load('./data/person_attribute_recognition/person_attribute_te.mat')
 
 % BoW visual representation (Or any other better representation)
 
-model_name = "default"; % "bow_sift"
-useCrossVal = 'on';
+model_name = "sift"; % "default" "bow" "bow_sift" "sift"
+useCrossVal = 'on'; % "on" or "off"
 
-if model_name == 'bow'
+if strcmp(model_name, 'bow')
+    fprintf("using bow\n")
     num_of_words = 200;
     NumBins = 18;
-    BlockSize = [4 2];
-    CellSize = [32 32];
+    BlockSize = [2 2];
+    CellSize = [8 8];
     num_blocks = 3;
     
     vocabulary = codebook(tr_img, 100, NumBins, BlockSize, CellSize, num_blocks);
     
-    [Xtr, ~] = ExtractFeatureReid(tr_img, resize_size, vocabulary, NumBins, BlockSize, CellSize, num_blocks);
-    [Xte, ~] = ExtractFeatureReid(te_img, resize_size, vocabulary,NumBins, BlockSize, CellSize, num_blocks);
-elseif model_name == 'sift'
-    [Xtr, ~] = ExtractFeatureAttributeSift(tr_img, resize_size);
-    [Xte, ~] = ExtractFeatureAttributeSift(te_img, resize_size);
-elseif model_name == 'bow_sift'
+    Xtr = ExtractFeatureReid(tr_img, resize_size, vocabulary, NumBins, BlockSize, CellSize, num_blocks);
+    Xte = ExtractFeatureReid(te_img, resize_size, vocabulary,NumBins, BlockSize, CellSize, num_blocks);
+elseif strcmp(model_name, 'sift')
+    fprintf("using sift\n")
+    Xtr = ExtractFeatureAttributeSift(tr_img, resize_size);
+    Xte = ExtractFeatureAttributeSift(te_img, resize_size);
+elseif strcmp(model_name, 'bow_sift')
+    fprintf("using bow sift\n")
     step = 3;
     binSize = 3;
     
@@ -99,6 +102,7 @@ elseif model_name == 'bow_sift'
     Xtr = ExtractFeatureAttributeBoWSift(tr_img, vocabulary, step, binSize);
     Xte = ExtractFeatureAttributeBoWSift(te_img, vocabulary, step, binSize);
 else
+    fprintf("using default\n")
     [Xtr, ~] = ExtractFeatureAttribute(tr_img, resize_size);
     [Xte, ~] = ExtractFeatureAttribute(te_img, resize_size);
 end
@@ -106,19 +110,19 @@ end
 Xtr = double(Xtr);
 Xte = double(Xte);
 
-if model_name == 'sift'
+if strcmp(model_name, 'sift')
     Xtr = Xtr';
     Xte = Xte';
 end
 
-if useCrossVal == 'on'
-    fprintf('Using crossvalidation')
+if strcmp(useCrossVal, 'on')
+    fprintf('Using crossvalidation\n')
 end
 
 % Train the recognizer and evaluate the performance
 %% backpack
 fprintf('Training backpack classifier...\n')
-model.backpack = fitcsvm(Xtr,Ytr.backpack,'KernelFunction','gaussian','CrossVal',useCrossVal);
+model.backpack = fitcsvm(Xtr,Ytr.backpack,'CrossVal',useCrossVal);
 if strcmp(useCrossVal, 'off')
     [l.backpack,prob.backpack] = predict(model.backpack,Xte);
 else
@@ -145,7 +149,7 @@ fprintf('The accuracy of backpack recognition is:%.2f \n', acc.backpack)
 
 %% bag
 fprintf('Training bag classifier...\n')
-model.bag = fitcsvm(Xtr,Ytr.bag,'KernelFunction','gaussian','CrossVal',useCrossVal);
+model.bag = fitcsvm(Xtr,Ytr.bag,'CrossVal',useCrossVal);
 if strcmp(useCrossVal, 'off')
     [l.bag,prob.bag] = predict(model.bag,Xte);
 else
@@ -172,7 +176,7 @@ fprintf('The accuracy of bag recognition is:%.2f \n', acc.bag)
 
 %% gender
 fprintf('Training gender classifier...\n')
-model.gender = fitcsvm(Xtr,Ytr.gender,'KernelFunction','gaussian','CrossVal',useCrossVal);
+model.gender = fitcsvm(Xtr,Ytr.gender,'CrossVal',useCrossVal);
 if strcmp(useCrossVal, 'off')
     [l.gender,prob.gender] = predict(model.gender,Xte);
 else
@@ -199,7 +203,7 @@ fprintf('The accuracy of gender recognition is:%.2f \n', acc.gender)
 
 %% hat
 fprintf('Training hat classifier...\n')
-model.hat = fitcsvm(Xtr,Ytr.hat,'KernelFunction','gaussian','CrossVal',useCrossVal);
+model.hat = fitcsvm(Xtr,Ytr.hat,'CrossVal',useCrossVal);
 if strcmp(useCrossVal, 'off')
     [l.hat,prob.hat] = predict(model.hat,Xte);
 else
@@ -226,7 +230,7 @@ fprintf('The accuracy of hat recognition is:%.2f \n', acc.hat)
 
 %% shoes
 fprintf('Training shoes classifier...\n')
-model.shoes = fitcsvm(Xtr,Ytr.shoes,'KernelFunction','gaussian','CrossVal',useCrossVal);
+model.shoes = fitcsvm(Xtr,Ytr.shoes,'CrossVal',useCrossVal);
 if strcmp(useCrossVal, 'off')
     [l.shoes,prob.shoes] = predict(model.shoes,Xte);
 else
@@ -253,7 +257,7 @@ fprintf('The accuracy of shoes recognition is:%.2f \n', acc.shoes)
 
 %% upred
 fprintf('Training upred classifier...\n')
-model.upred = fitcsvm(Xtr,Ytr.upred,'KernelFunction','gaussian','CrossVal',useCrossVal);
+model.upred = fitcsvm(Xtr,Ytr.upred,'CrossVal',useCrossVal);
 if strcmp(useCrossVal, 'off')
     [l.upred,prob.upred] = predict(model.upred,Xte);
 else

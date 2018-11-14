@@ -4,10 +4,14 @@ Implementation of a Person Surveillance System on python, it should be able tell
 
 ## Results (Module 2)
 
+these are the results
+
 | Configuration | Using CrossVal | mAP |
 |:-------------:|:--------------:|:---:|
 | Base System   | No | 35% |
 | HoG Attributes | Yes | 35% |
-| BoW with SIFT Attributes | No | 30% |
+| BoW with HOG attributes | No | 29% |
+| BoW with SIFT attributes | No | 32% |
+| BoW with SIFT attributes | Yes| 32% |
 | SIFT attributes | Yes | 27% |
 | SIFT attributes | No | 27% |
