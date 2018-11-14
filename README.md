@@ -2,7 +2,7 @@
 
 Implementation of a Person Surveillance System on python, it should be able tell given two images of persons if they are the same person, the second module should be able to given some text attributes (hat, woman, etc.) retrive an images with such attributes
 
-## Results (Module 2)
+## Results (Module 2)
 
 these are the results
 
