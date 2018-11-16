@@ -60,7 +60,7 @@ load('./data/person_attribute_recognition/person_attribute_te.mat')
 
 % BoW visual representation (Or any other better representation)
 
-model_name = "bow_sift"; % "default" "bow" "bow_sift" "sift" "color"
+model_name = "default"; % "default" "bow" "bow_sift" "sift" "color"
 useCrossVal = 'off'; % "on" or "off"
 
 if strcmp(model_name, 'bow')
