@@ -60,7 +60,7 @@ load('./data/person_attribute_recognition/person_attribute_te.mat')
 
 % BoW visual representation (Or any other better representation)
 
-model_name = "default"; % "default" "bow" "bow_sift" "sift" "color"
+model_name = "color"; % "hog" "bow" "bow_sift" "sift" "color"
 useCrossVal = 'off'; % "on" or "off"
 
 if strcmp(model_name, 'bow')
@@ -71,7 +71,7 @@ if strcmp(model_name, 'bow')
     CellSize = [8 8];
     num_blocks = 3;
     
-    vocabulary = codebook(tr_img, 100, NumBins, BlockSize, CellSize, num_blocks);
+    vocabulary = codebook(tr_img, num_of_words, NumBins, BlockSize, CellSize, num_blocks);
     
     Xtr = ExtractFeatureReid(tr_img, resize_size, vocabulary, NumBins, BlockSize, CellSize, num_blocks);
     Xte = ExtractFeatureReid(te_img, resize_size, vocabulary,NumBins, BlockSize, CellSize, num_blocks);

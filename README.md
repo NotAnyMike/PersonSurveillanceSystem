@@ -10,7 +10,8 @@ these are the results
 
 | Configuration | Using CrossVal | mAP |
 |:-------------:|:--------------:|:---:|
-| Base System   | No | 35% |
+| Base System   | No | 33% |
+| Hog Attributes with 16 wind and 24 bins and block of 4 | No | 37% |
 | HoG Attributes | Yes | 35% |
 | BoW with HOG attributes | No | 29% |
 | BoW with SIFT attributes | No | 32% |
@@ -18,5 +19,6 @@ these are the results
 | SIFT attributes | Yes | 27% |
 | SIFT attributes | No | 36% |
 | Colors hist with norm | No | 32% |
+| Window 16 of hist colors | No | 38% |
 
 The biggest mAP comes from a classifier only using SIFT features, with binSize of 8 and step of 5
