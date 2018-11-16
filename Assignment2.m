@@ -60,7 +60,7 @@ load('./data/person_attribute_recognition/person_attribute_te.mat')
 
 % BoW visual representation (Or any other better representation)
 
-model_name = "lbp"; % "default" "bow" "bow_sift" "sift" "lbp"
+model_name = "color"; % "hog" "bow" "bow_sift" "sift" "color"
 useCrossVal = 'off'; % "on" or "off"
 
 if strcmp(model_name, 'bow')
@@ -71,7 +71,7 @@ if strcmp(model_name, 'bow')
     CellSize = [8 8];
     num_blocks = 3;
     
-    vocabulary = codebook(tr_img, 100, NumBins, BlockSize, CellSize, num_blocks);
+    vocabulary = codebook(tr_img, num_of_words, NumBins, BlockSize, CellSize, num_blocks);
     
     Xtr = ExtractFeatureReid(tr_img, resize_size, vocabulary, NumBins, BlockSize, CellSize, num_blocks);
     Xte = ExtractFeatureReid(te_img, resize_size, vocabulary,NumBins, BlockSize, CellSize, num_blocks);
@@ -105,6 +105,10 @@ elseif strcmp(model_name, 'lbp')
     fprintf('Using LBP\n')
     Xtr = ExtractFeatureAttributeLBP(tr_img);
     Xte = ExtractFeatureAttributeLBP(te_img);
+elseif strcmp(model_name, "color")
+    fprintf('Using Color\n')
+    Xtr = ExtractFeatureAttributeColor(tr_img);
+    Xte = ExtractFeatureAttributeColor(te_img);
 else
     fprintf("using default\n")
     [Xtr, ~] = ExtractFeatureAttribute(tr_img, resize_size);

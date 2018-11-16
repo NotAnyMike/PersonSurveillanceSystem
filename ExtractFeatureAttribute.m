@@ -13,7 +13,7 @@ function [train_data,label] = ExtractFeatureAttribute(images, imsize, class)
         img = images{i};
         img = rgb2gray(img);
         img = imresize(img,imsize,'bilinear');
-        tmp = extractHOGFeatures(img,'CellSize',[16 16]);
+        tmp = extractHOGFeatures(img,'CellSize',[16 16], 'NumBins', 24, 'BlockSize', [4 4]);
         train_data = [train_data;tmp]; 
     end 
     
