@@ -24,6 +24,4 @@ these are the results
 | Window 16 of hist colors | No | 38% |
 | Window 16 of hist colors with sum | No | 39% |
 | Window 16 of hist colors with sum and total | No | 40% |
-| LBP | | |
-
-The biggest mAP comes from a classifier using only LBP features with cell size of 8x8 and the second best comes from a model only using SIFT features, with binSize of 8 and step of 5 as well as 
+| LBP | | 36% |
