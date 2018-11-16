@@ -6,7 +6,7 @@ function train_data = ExtractFeatureAttribute(images, imsize)
     train_data = [];
     
     step_p = 5;
-    binSize = 4;
+    binSize = 8;
     
     for i = 1:num
         img = images{i};

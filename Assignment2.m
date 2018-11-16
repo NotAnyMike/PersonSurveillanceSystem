@@ -60,7 +60,7 @@ load('./data/person_attribute_recognition/person_attribute_te.mat')
 
 % BoW visual representation (Or any other better representation)
 
-model_name = "sift"; % "default" "bow" "bow_sift" "sift"
+model_name = "lbp"; % "default" "bow" "bow_sift" "sift" "lbp"
 useCrossVal = 'off'; % "on" or "off"
 
 if strcmp(model_name, 'bow')
@@ -101,6 +101,10 @@ elseif strcmp(model_name, 'bow_sift')
     fprintf('Extracting features from sets\n')
     Xtr = ExtractFeatureAttributeBoWSift(tr_img, vocabulary, step, binSize);
     Xte = ExtractFeatureAttributeBoWSift(te_img, vocabulary, step, binSize);
+elseif strcmp(model_name, 'lbp')
+    fprintf('Using LBP\n')
+    Xtr = ExtractFeatureAttributeLBP(tr_img);
+    Xte = ExtractFeatureAttributeLBP(te_img);
 else
     fprintf("using default\n")
     [Xtr, ~] = ExtractFeatureAttribute(tr_img, resize_size);
