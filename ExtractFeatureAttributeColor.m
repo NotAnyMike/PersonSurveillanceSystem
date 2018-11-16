@@ -19,7 +19,10 @@ function train_data = ExtractFeatureAttributeColor(images)
         g = reshape(g, [1,prod(size(g))]);
         b = blockproc(img(:,:,3), win_size, fun);
         b = reshape(b, [1,prod(size(b))]);
+        t = histcounts(img, 5);
+        t = t / sum(t);
         features = [r g b];
-        features = features / max(features);
+        features = features / sum(features);
+        features = [features t];
         train_data = [train_data;features]; 
     end
