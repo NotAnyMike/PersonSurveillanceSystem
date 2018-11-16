@@ -11,7 +11,7 @@ function train_data = ExtractFeatureAttributeBoWSift(images, vocabulary, step_p,
         
         d = vl_alldist2(double(vocabulary), double(features));
         [~,min_index] = min(d);
-        tmp = hist(min_index,size(vocabulary,2));
+        tmp = histcounts(min_index,size(vocabulary,2));
         tmp = tmp / sum(tmp);
         
         train_data = [train_data; tmp]; 

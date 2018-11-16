@@ -1,0 +1,15 @@
+function train_data = ExtractFeatureAttributeCo(images, imsize)
+
+    dir = pwd();
+    num = length(images);
+    train_data = [];
+    
+    for i = 1:num
+        img = images{i};
+        r = hist(img(img(:.:.1).30)
+        g = hist(img(img(:.:.2).30)
+        b = hist(img(img(:.:.2).30)
+        features = [r g b]
+        features = features / max(features)
+        train_data = [train_data,features]; 
+    end
