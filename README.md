@@ -2,6 +2,8 @@
 
 Implementation of a Person Surveillance System on python, it should be able tell given two images of persons if they are the same person, the second module should be able to given some text attributes (hat, woman, etc.) retrive an images with such attributes
 
+## Things to try
+
 ** Colors are very useful **
 
 ## Results (Module 2)
@@ -22,6 +24,4 @@ these are the results
 | Window 16 of hist colors | No | 38% |
 | Window 16 of hist colors with sum | No | 39% |
 | Window 16 of hist colors with sum and total | No | 40% |
-| LBP | | |
-
-The biggest mAP comes from a classifier only using SIFT features, with binSize of 8 and step of 5
+| LBP | | 36% |

@@ -60,7 +60,7 @@ load('./data/person_attribute_recognition/person_attribute_te.mat')
 
 % BoW visual representation (Or any other better representation)
 
-model_name = "color"; % "hog" "bow" "bow_sift" "sift" "color"
+model_name = "color"; % "hog" "bow" "bow_sift" "sift" "color" "lbp"
 useCrossVal = 'off'; % "on" or "off"
 
 if strcmp(model_name, 'bow')
@@ -101,9 +101,21 @@ elseif strcmp(model_name, 'bow_sift')
     fprintf('Extracting features from sets\n')
     Xtr = ExtractFeatureAttributeBoWSift(tr_img, vocabulary, step, binSize);
     Xte = ExtractFeatureAttributeBoWSift(te_img, vocabulary, step, binSize);
+elseif strcmp(model_name, 'lbp')
+    fprintf('Using LBP\n')
+    Xtr = ExtractFeatureAttributeLBP(tr_img);
+    Xte = ExtractFeatureAttributeLBP(te_img);
 elseif strcmp(model_name, "color")
+    fprintf('Using Color\n')
     Xtr = ExtractFeatureAttributeColor(tr_img);
     Xte = ExtractFeatureAttributeColor(te_img);
+elseif strcmp(model_name, "two")
+    fprintf('Using two\n')
+    Xtr_1 = ExtractFeatureAttributeColor(tr_img);
+    Xte_1 = ExtractFeatureAttributeColor(te_img);
+    
+    Xtr_2 = ExtractFeatureAttribute(tr_img,resize_size);
+    Xte_2 = ExtractFeatureAttribute(te_img,resize_size);
 else
     fprintf("using default\n")
     [Xtr, ~] = ExtractFeatureAttribute(tr_img, resize_size);
@@ -125,9 +137,24 @@ end
 % Train the recognizer and evaluate the performance
 %% backpack
 fprintf('Training backpack classifier...\n')
-model.backpack = fitcsvm(Xtr,Ytr.backpack,'CrossVal',useCrossVal);
+
+if strcmp(model_name, "two")
+    model.backpack_1 = fitcsvm(Xtr_1,Ytr.backpack);
+    model.backpack_2 = fitcsvm(Xtr_2,Ytr.backpack);
+else
+    model.backpack = fitcsvm(Xtr,Ytr.backpack,'CrossVal',useCrossVal);
+end
+
 if strcmp(useCrossVal, 'off')
-    [l.backpack,prob.backpack] = predict(model.backpack,Xte);
+    if strcmp(model_name, "two")
+        [l.backpack1,prob.backpack1] = predict(model.backpack_1,Xte_1);
+        [l.backpack2,prob.backpack2] = predict(model.backpack_2,Xte_2);
+        l.backpack = floor((l.backpack1+l.backpack2)/2);
+        prob.backpack = max(prob.backpack1(:,2),prob.backpack2(:,2));
+        prob.backpack = [-prob.backpack prob.backpack];
+    else
+        [l.backpack,prob.backpack] = predict(model.backpack,Xte);
+    end
 else
     predicted = [];
     probabilities1 = [];
@@ -152,9 +179,23 @@ fprintf('The accuracy of backpack recognition is:%.2f \n', acc.backpack)
 
 %% bag
 fprintf('Training bag classifier...\n')
-model.bag = fitcsvm(Xtr,Ytr.bag,'CrossVal',useCrossVal);
+if strcmp(model_name, "two")
+    model.bag_1 = fitcsvm(Xtr_1,Ytr.bag);
+    model.bag_2 = fitcsvm(Xtr_2,Ytr.bag);
+else
+    model.bag = fitcsvm(Xtr,Ytr.bag,'CrossVal',useCrossVal);
+end
+
 if strcmp(useCrossVal, 'off')
-    [l.bag,prob.bag] = predict(model.bag,Xte);
+    if strcmp(model_name, "two")
+        [l.bag1,prob.bag1] = predict(model.bag_1,Xte_1);
+        [l.bag2,prob.bag2] = predict(model.bag_2,Xte_2);
+        l.bag = floor((l.bag1+l.bag2)/2);
+        prob.bag = max(prob.bag1(:,2),prob.bag2(:,2));
+        prob.bag = [-prob.bag prob.bag];
+    else
+        [l.bag,prob.bag] = predict(model.bag,Xte);
+    end
 else
     predicted = [];
     probabilities1 = [];
@@ -179,9 +220,23 @@ fprintf('The accuracy of bag recognition is:%.2f \n', acc.bag)
 
 %% gender
 fprintf('Training gender classifier...\n')
-model.gender = fitcsvm(Xtr,Ytr.gender,'CrossVal',useCrossVal);
+if strcmp(model_name, "two")
+    model.gender_1 = fitcsvm(Xtr_1,Ytr.gender);
+    model.gender_2 = fitcsvm(Xtr_2,Ytr.gender);
+else
+    model.gender = fitcsvm(Xtr,Ytr.gender,'CrossVal',useCrossVal);
+end
+
 if strcmp(useCrossVal, 'off')
-    [l.gender,prob.gender] = predict(model.gender,Xte);
+    if strcmp(model_name, "two")
+        [l.gender1,prob.gender1] = predict(model.gender_1,Xte_1);
+        [l.gender2,prob.gender2] = predict(model.gender_2,Xte_2);
+        l.gender = floor((l.gender1+l.gender2)/2);
+        prob.gender = max(prob.gender1(:,2),prob.gender2(:,2));
+        prob.gender = [-prob.gender prob.gender];
+    else
+        [l.gender,prob.gender] = predict(model.gender,Xte);
+    end
 else
     predicted = [];
     probabilities1 = [];
@@ -206,9 +261,23 @@ fprintf('The accuracy of gender recognition is:%.2f \n', acc.gender)
 
 %% hat
 fprintf('Training hat classifier...\n')
-model.hat = fitcsvm(Xtr,Ytr.hat,'CrossVal',useCrossVal);
+if strcmp(model_name, "two")
+    model.hat_1 = fitcsvm(Xtr_1,Ytr.hat);
+    model.hat_2 = fitcsvm(Xtr_2,Ytr.hat);
+else
+    model.hat = fitcsvm(Xtr,Ytr.hat,'CrossVal',useCrossVal);
+end
+
 if strcmp(useCrossVal, 'off')
-    [l.hat,prob.hat] = predict(model.hat,Xte);
+    if strcmp(model_name, "two")
+        [l.hat1,prob.hat1] = predict(model.hat_1,Xte_1);
+        [l.hat2,prob.hat2] = predict(model.hat_2,Xte_2);
+        l.hat = floor((l.hat1+l.hat2)/2);
+        prob.hat = max(prob.hat1(:,2),prob.hat2(:,2));
+        prob.hat = [-prob.hat prob.hat];
+    else
+        [l.hat,prob.hat] = predict(model.hat,Xte);
+    end
 else
     predicted = [];
     probabilities1 = [];
@@ -233,9 +302,23 @@ fprintf('The accuracy of hat recognition is:%.2f \n', acc.hat)
 
 %% shoes
 fprintf('Training shoes classifier...\n')
-model.shoes = fitcsvm(Xtr,Ytr.shoes,'CrossVal',useCrossVal);
+if strcmp(model_name, "two")
+    model.shoes_1 = fitcsvm(Xtr_1,Ytr.shoes);
+    model.shoes_2 = fitcsvm(Xtr_2,Ytr.shoes);
+else
+    model.shoes = fitcsvm(Xtr,Ytr.shoes,'CrossVal',useCrossVal);
+end
+
 if strcmp(useCrossVal, 'off')
-    [l.shoes,prob.shoes] = predict(model.shoes,Xte);
+    if strcmp(model_name, "two")
+        [l.shoes1,prob.shoes1] = predict(model.shoes_1,Xte_1);
+        [l.shoes2,prob.shoes2] = predict(model.shoes_2,Xte_2);
+        l.shoes = floor((l.shoes1+l.shoes2)/2);
+        prob.shoes = max(prob.shoes1(:,2),prob.shoes2(:,2));
+        prob.shoes = [-prob.shoes prob.shoes];
+    else
+        [l.shoes,prob.shoes] = predict(model.shoes,Xte);
+    end
 else
     predicted = [];
     probabilities1 = [];
@@ -260,9 +343,23 @@ fprintf('The accuracy of shoes recognition is:%.2f \n', acc.shoes)
 
 %% upred
 fprintf('Training upred classifier...\n')
-model.upred = fitcsvm(Xtr,Ytr.upred,'CrossVal',useCrossVal);
+if strcmp(model_name, "two")
+    model.upred_1 = fitcsvm(Xtr_1,Ytr.upred);
+    model.upred_2 = fitcsvm(Xtr_2,Ytr.upred);
+else
+    model.upred = fitcsvm(Xtr,Ytr.upred,'CrossVal',useCrossVal);
+end
+
 if strcmp(useCrossVal, 'off')
-    [l.upred,prob.upred] = predict(model.upred,Xte);
+    if strcmp(model_name, "two")
+        [l.upred1,prob.upred1] = predict(model.upred_1,Xte_1);
+        [l.upred2,prob.upred2] = predict(model.upred_2,Xte_2);
+        l.upred = floor((l.upred1+l.upred2)/2);
+        prob.upred = max(prob.upred1(:,2),prob.upred2(:,2));
+        prob.upred = [-prob.upred prob.upred];
+    else
+        [l.upred,prob.upred] = predict(model.upred,Xte);
+    end
 else
     predicted = [];
     probabilities1 = [];
