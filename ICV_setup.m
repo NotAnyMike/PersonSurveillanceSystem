@@ -1,2 +1,5 @@
 run('./library/vlfeat-0.9.21/toolbox/vl_setup')
 addpath(genpath('./library/liblinear-2.1/matlab'))
+addpath(genpath('./library/libsvm-3.23/matlab'))
+addpath(genpath('./library/MSCR/'))
+addpath(genpath('./library/MSCR/mscrCcode'))
