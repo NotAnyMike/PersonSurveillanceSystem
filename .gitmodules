@@ -1,0 +1,7 @@
+[submodule "yolomex"]
+	path = yolomex
+	url = https://github.com/ignacio-rocco/yolomex
+
+[submodule "darknet"]
+    path =  yolomex/darknet
+    url = https://github.com/pjreddie/darknet.git
