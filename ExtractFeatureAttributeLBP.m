@@ -8,12 +8,9 @@ function train_data = ExtractFeatureAttribute(images)
         img = rgb2gray(img);
         %img = imresize(img,imsize,'bilinear');
         tmp = extractLBPFeatures(img,'CellSize',[8 8],'NumNeighbors',8);
-        [frames, features] = vl_dsift(single(img),'Step',5,'size', 8,'fast');
-        tmp = double(extractHOGFeatures(img,'CellSize',[16 16]));
-        features = double(reshape(features,prod(size(features)),1)');
+        tmp = tmp(:)';
         tmp = tmp / max(tmp);
-        features = features / max(features);
-        train_data = [train_data;[tmp features]];
+        train_data = [train_data; tmp];
         %train_data = [train_data;tmp];
     end
     train_data = train_data;

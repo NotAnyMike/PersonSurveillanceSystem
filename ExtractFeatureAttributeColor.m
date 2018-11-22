@@ -1,8 +1,8 @@
-function train_data = ExtractFeatureAttributeColor(images)
+function features_to_return = ExtractFeatureAttributeColor(images)
 
     dir = pwd();
     num = length(images);
-    train_data = [];
+    features_to_return = [];
     
     for i = 1:num
         
@@ -14,15 +14,15 @@ function train_data = ExtractFeatureAttributeColor(images)
         %b = histcounts(img(:,:,3),5);
         win_size = [16 16];
         r = blockproc(img(:,:,1), win_size, fun);
-        r = reshape(r, [1,prod(size(r))]);
+        r = r(:)';
         g = blockproc(img(:,:,2), win_size, fun);
-        g = reshape(g, [1,prod(size(g))]);
+        g = g(:)';
         b = blockproc(img(:,:,3), win_size, fun);
-        b = reshape(b, [1,prod(size(b))]);
+        b = b(:)';
         t = histcounts(img, 5);
         t = t / sum(t);
         features = [r g b];
         features = features / sum(features);
-        features = [features t];
-        train_data = [train_data;features]; 
+        %features = [features t];
+        features_to_return = [features_to_return;features]; 
     end
