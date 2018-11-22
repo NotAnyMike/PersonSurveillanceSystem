@@ -69,36 +69,17 @@ image_gallery = {};
 gallery_bbox = {};
 gallery_score = {};
 
+% initalise YOLO
 letsyolo();
+yolo_thresh = 0.1;
+yolo_hier_thresh = 0.5;
 
 num_gallery = length(gallery);
 
-%% Single/Multi-Scale Sliding Window
-%==========================================================================
-% Evaluating your detector and the sliding window.
-% -It is okay to only use a single-scale sliding window for this assignment.
-% However, a better performance would be required a multi-scale sliding
-% window due to the different person size in real image.
-%                                (You should finish this part by yourself)
-%==========================================================================
-% window_size = [50, 150];
-% 
-% for i = 1:num_gallery
-%     img = imresize(gallery(i).image, gallery_image_size, 'bilinear');
-%     [H, W, ~] = size(gallery(i).image);
-%     gallery(i).gt_bbox = adjust_bbox(gallery(i).gt_bbox, W, H, gallery_image_size(2), gallery_image_size(1));
-%     % use your detector to detect perdestrian in img
-%     [bbox, score] = window(window_size,img,svm_model1, threshold_detect);
-%     % use the NMS function you have inplemented to reduce duplicate
-%     % bounding boxes
-%     [bbox, score] = NMS(bbox, score, threshold_nms);
-%     % store detected bounding boxes and scores
-%     gallery_bbox{i} = bbox;
-%     gallery_score{i} = score;
-% %     temp_draw_box(img_test,bbox);
-% end
+%% YOLO detect people
 
-[gallery_score, gallery_bbox, ppl_images, detections] = yolo_detect(gallery, gallery_image_size, 0.1, 0.5);
+[gallery_score, gallery_bbox, ppl_images, detections] = yolo_detect(gallery,...
+    gallery_image_size, yolo_thresh, yolo_hier_thresh);
 
 
 %% Evaluating your result on the person search data via mAP
@@ -118,6 +99,7 @@ fprintf('The mean Average Precision of pedestrian detection is:%.2f \n', mAP_det
 %                                (You should finish this part by yourself)
 %==========================================================================
 
+% load pretrained model with settings for feature extraction
 load('person_reid_model.mat');
 load('person_reid_settings.mat');
 
@@ -127,9 +109,6 @@ frame = [];
 image_gallery = ppl_images;
 num_gallery = length(gallery);
 for i = 1:num_gallery
-%     img = imresize(gallery(i).image, gallery_image_size, 'bilinear');
-%     gallery_img_ = crop_bbox(img, gallery_bbox{i});
-%     image_gallery = cat(1,image_gallery, gallery_img_);
     id_ = get_id(gallery_bbox{i}, gallery(i).gt_bbox, gallery(i).id_bbox);
     id_gallery = [id_gallery; id_];
 end
@@ -186,8 +165,7 @@ fprintf('The mean Average Precision of person re-identification is:%.2f \n', mAP
 %% Try to visualize the results by yourself
 %==========================================================================
 
-
-
-for i = 1:length(image_query)
-    imshow(image_query{i})
+for i = 1:length(image_gallery)
+    draw_box(gallery(i).image, gallery(i).gt_bbox, gallery_bbox{i})
+    pause(1)
 end
