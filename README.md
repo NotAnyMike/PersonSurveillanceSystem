@@ -8,73 +8,92 @@ The idea here is to take 2 pictures of people, extract features from both and se
 - Local binary patterns (LBP)
 - Colour histogram
 
-### Colour histogram Implementation
+### Colour histogram with HSV colour space
 Cell wise colour histogram is extracted from image. It is parametrised based on number of bins in the histogram and the cell size. Let's play with both!
 However, in Lecture 4.2.1, Tim suggests it's best to use colour histogram + HoG + LBP. Let's try that and maybe quote his paper?
 
-Colour histogram parameters (window size 16):
-bin=4 20.77%
-bin=5 20.61%
-bin=3 22.89%
-bin=2 15.26%
+HSV Colour space seems to work way better in this usage.
 
-Sticking with bin=3, let;s change the window size:
-However, window size should be a able to devise the image size for best performance.
-window=16 22.89%
-window=8  11.88%
-window=12 16.78%
-window=20 21.22%
-window=32  17.01%
+| Window size | 20 bins | 40 bins | 60 bins | 100 bins | 120 bins | 140 bins|
+| -- |-- |-- |-- |-- |-- |-- |
+| 16 16 | 30.37 | 25.96 | 27.47 | 24.61 | 25.66 | 24.13 | 22.49 | 
+| 32 16 | 29.06 | 30.29 | 31.29 | 31.50 | 27.48 | 31.48 | 29.33 |
+| 32 32 | 24.25 | 25.19 | 26.47 | 27.01 | 28.93 | 29.37 | 27.01 |
+| 64 32 | 23.48 | 27.29 | 29.43 | 28.64 | 31.54 | 29.86 | 30.43 |
 
-So best parameters for colour histogram are window=16 and bin=3.
-HSV colour histograms seem to do better than RGB ones. Why not use all?
+### Colour histogram with RGB colour space
 
-HSV seems to favour 4 colour bins.
+In addition to the HSV colour histogram, now I'll also stack an RGB one
+
+| nbin | with total | without total |
+| -- | -- | -- |
+| 5  | 33.59  | 32.20 | 
+| 10 | 31.96  | 32.70 |
+| 15 | 31.92  | 32.76 |
+| 20 | 31.90  | 32.97 |
+| 30 | 31.86  | 33.14 |
+| 40 | 31.39  | 33.14 |
+| 60 | 32.25  | 33.67 |
+| 80 | 31.46  | 33.07 |
+| 100 | 31.76 | 32.49 |
 
 ### Histogram of Gradients (HoG)
 default params:
-hog_win_size = [16 16];
-hog_nbins = 24;
-hog_block_size = [4 4];
+- win_size = [16 16];
+- nbins = 24;
+- block_size = [4 4];
+
 Acc: 11.07%
 
-Let's start playing with the bins - reduce them
-hog_nbins = 24 11.07%
-hog_nbins = 12 13.31%
-hog_nbins = 6  15.50%
-hog_nbins = 3  13.79%
-
-Let's try to play with the block size now
-hog_block_size = [4 4] 15.50%
-hog_block_size = [3 3] 11.90%
-hog_block_size = [3 3] 5.79%
-
+| nbins | mAP |
+| -- | -- |
+| 10 | 38.45% |
+| 15 | 40.11% |
+| 20 | 40.06% |
+| 30 | 42.40% |
+| 40 | 42.68% |
+| 50 | 38.47% |
 
 ### Local binary patterns (LBP)
-default params
-lbp_win_size = [16 16];
-lbp_n_neighbour = 8;
+default params:
+- win_size = [16 16];
+- n_neighbour = 8;
+
 Acc: 13.44%
 
 Can't really change the window size, so let's play with the neighbours
-lbp_n_neighbour=16 9.69%
-lbp_n_neighbour=4 17.23%
-lbp_n_neighbour=6 16.12%
-lbp_n_neighbour=3 12.02%
+
+| neighbour | mAP |
+| -- | -- |
+| 4  | 35.42 |
+| 5  | 32.78 |
+| 6  | 34 83 |
+| 7  | 34.10 |
+| 8  | 37.41 |
+| 9  | 36.39 |
+| 10 | 32.46 |
+| 11 | 33.59 |
+| 12 | 33.12 |
 
 
 ### Tuning the SVM
 With all of the 3 features from above concatenated
-Outlier rejection with fraction 0.00 - 27.89%
-Outlier rejection with fraction 0.05 - 27.19%
-Outlier rejection with fraction 0.1 -  27.51%
-Outlier rejection with fraction 0.15 - 25.67%
-Outlier rejection with fraction 0.09 - 28.33%
-nu = 0.1 - 27.64%
-nu = 0.2 - 27.90%
-nu = 0.3 - 27.75%
-nu = 0.25 - 28.91%
-nu = 0.22 - 28.98%
+
+| outliers | mAP |
+| -- | -- |
+| 0.00 | 27.89 |
+| 0.05 | 27.19 |
+| 0.1  | 27.51 |
+| 0.15 | 25.67 |
+| 0.09 | 28.33 |
+
+| outliers | mAP |
+| -- | -- |
+| 0.1 | 27.64 |
+| 0.2 | 27.90 |
+| 0.3  | 27.75 |
+| 0.25 | 28.91 |
+| 0.22 | 28.98 |
 
 Tuned SVM will be refereed to as SVM+.
 

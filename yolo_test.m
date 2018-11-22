@@ -11,11 +11,11 @@ thresh = 0.24;
 hier_thresh = 0.5;
 I = imread(filename);
 
-yolomex('init',datacfg,cfgfile,weightfile)
+yolomex('init',datacfg,cfgfile,weightfile);
 
-detections = yolomex('test',filename,thresh,hier_thresh)    
+detections = yolomex('test',filename,thresh,hier_thresh);   
 
-detections = yolomex('detect',I,thresh,hier_thresh)  
+detections = yolomex('detect',I,thresh,hier_thresh);
 
 cd ..
 
@@ -36,39 +36,39 @@ for i=1:num
             dy = dx*2;
         end
         
-        top=y+dy
-        bottom=y-dy
-        left=x-dx
-        right=x+dx
+        top=y+dy;
+        bottom=y-dy;
+        left=x-dx;
+        right=x+dx;
         
-        [imgtop, imgright, ~] = size(I)
+        [imgtop, imgright, ~] = size(I);
         
         if top > imgtop
-            top = imgtop
+            top = imgtop;
         end
         if right > imgright
-            right = imgright
+            right = imgright;
         end
         if bottom < 0
-            bottom = 0
+            bottom = 0;
         end
         if left < 0
-            left = 0
+            left = 0;
         end
         
         img = I(bottom:top,left:right,:);
         img = imresize(img,[128 64],'bilinear');
-        images{length(images)+1} = img
+        images{length(images)+1} = img;
         %imshow(img);
     end
 end
 
 %% getting all imagest to print at the same time
-imgs = []
+imgs = [];
 for i=1:length(images)
     imgs = [imgs, images{i}];
 end
 f1=figure;
-imshow(imgs)
+imshow(imgs);
 f2=figure;
-plotResults()
+plotResults();
