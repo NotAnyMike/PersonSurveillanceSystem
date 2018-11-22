@@ -56,79 +56,96 @@ Xte = [];
 
 load('./data/person_attribute_recognition/person_attribute_te.mat')
 
-% objective is mAP 33%
+% Old code:
+% Functions with name ExtractFeatureAttribute[type].m are the original
+% functions implemented to extract features using [type], but given that
+% the best performance comes from simple features the following code
+% incorpors all the functions and it is much more readable, altough is
+% less efficient on unsued feature extractors.
+% 
+% The different ExtracFeature files are "hog" "bow_hog" "bow_sift" "sift"
+% "color" and "lbp".
 
-% BoW visual representation (Or any other better representation)
 
-model_name = "color"; % "hog" "bow" "bow_sift" "sift" "color" "lbp"
 useCrossVal = 'off'; % "on" or "off"
 
-if strcmp(model_name, 'bow')
-    fprintf("using bow\n")
-    num_of_words = 200;
-    NumBins = 18;
-    BlockSize = [2 2];
-    CellSize = [8 8];
-    num_blocks = 3;
-    
-    vocabulary = codebook(tr_img, num_of_words, NumBins, BlockSize, CellSize, num_blocks);
-    
-    Xtr = ExtractFeatureReid(tr_img, resize_size, vocabulary, NumBins, BlockSize, CellSize, num_blocks);
-    Xte = ExtractFeatureReid(te_img, resize_size, vocabulary,NumBins, BlockSize, CellSize, num_blocks);
-elseif strcmp(model_name, 'sift')
-    fprintf("using sift\n")
-    Xtr = ExtractFeatureAttributeSift(tr_img, resize_size);
-    Xte = ExtractFeatureAttributeSift(te_img, resize_size);
-elseif strcmp(model_name, 'bow_sift')
-    fprintf("using bow sift\n")
-    step = 3;
-    binSize = 3;
-    
+% New Code:
+% The following is the full configuration variable that contains all
+% variables to run the model, by default it will only use histograms of rgb
+% and hsv colors because they give the best performance 44% mAP, to turn on
+% any other feature extraction use the flag 'use', the default parameters
+% should be ok, but they are not the best and haven't been tune correctly,
+% only the defaults paramenter for the two methods used (mentioned above)
+% are tuned.
+
+% Setting should look like:
+dsettings = struct;
+% color histogram
+dsettings.color_hist.use        = true;
+dsettings.color_hist.nbins      = 5;
+dsettings.color_hist.win_size   = [16 16];
+% hsv histogram
+dsettings.col_hist_hsv.use      = true;
+dsettings.col_hist_hsv.nbins    = 5;
+dsettings.col_hist_hsv.win_size = [16 16];
+% Sift Features
+dsettings.sift.use     = false;
+dsettings.sift.step_p  = 5;
+dsettings.sift.binSize = 8;
+%lbp
+dsettings.lbp.use         = false;
+dsettings.lbp.win_size    = [8 8];
+dsettings.lbp.n_neighbour = 8;
+dsettings.lbp.radius      = 1;
+dsettings.lbp.is_upright  = true;
+%BoW with Sift Features
+dsettings.bow_with_sift.use          = false;
+dsettings.bow_with_sift.step         = 3;
+dsettings.bow_with_sift.binSize      = 3;
+dsettings.bow_with_sift.num_of_words = 200;
+dsettings.bow_with_sift.vocab        = 0;
+%BoW with HoG features
+dsettings.bow_with_hog.use          = false;
+dsettings.bow_with_hog.num_of_words = 200;
+dsettings.bow_with_hog.NumBins      = 18;
+dsettings.bow_with_hog.BlockSize    = [2 2];
+dsettings.bow_with_hog.CellSize     = [8 8];
+dsettings.bow_with_hog.num_blocks   = 3;
+dsettings.bow_with_hog.vocab        = 0;
+
+% Loading vocabulary in case bow_with_sift will be used
+if dsettings.bow_with_sift.use
     if ~exist('bow_sift_vocab.mat', 'file')
         fprintf('No existing visual word vocabulary found. Computing one from training images\n')
-
-        num_of_words = 200;
-
-        vocabulary = codebook_sift(tr_img, num_of_words, step, binSize);
-        
-        save('bow_sift_vocab.mat', 'vocabulary');
+        vocab_sift = codebook_sift(tr_img, dsettings.bow_with_sift.num_of_words, dsettings.bow_with_sift.step, dsettings.bow_with_sift.binSize);
+        save('bow_sift_vocab.mat', 'vocab_sift');
         load('bow_sift_vocab.mat');
     else 
         fprintf('Loading existing vocabulary\n')
         load('bow_sift_vocab.mat');
     end
-    
-    fprintf('Extracting features from sets\n')
-    Xtr = ExtractFeatureAttributeBoWSift(tr_img, vocabulary, step, binSize);
-    Xte = ExtractFeatureAttributeBoWSift(te_img, vocabulary, step, binSize);
-elseif strcmp(model_name, 'lbp')
-    fprintf('Using LBP\n')
-    Xtr = ExtractFeatureAttributeLBP(tr_img);
-    Xte = ExtractFeatureAttributeLBP(te_img);
-elseif strcmp(model_name, "color")
-    fprintf('Using Color\n')
-    Xtr = ExtractFeatureAttributeColor(tr_img);
-    Xte = ExtractFeatureAttributeColor(te_img);
-elseif strcmp(model_name, "two")
-    fprintf('Using two\n')
-    Xtr_1 = ExtractFeatureAttributeColor(tr_img);
-    Xte_1 = ExtractFeatureAttributeColor(te_img);
-    
-    Xtr_2 = ExtractFeatureAttribute(tr_img,resize_size);
-    Xte_2 = ExtractFeatureAttribute(te_img,resize_size);
-else
-    fprintf("using default\n")
-    [Xtr, ~] = ExtractFeatureAttribute(tr_img, resize_size);
-    [Xte, ~] = ExtractFeatureAttribute(te_img, resize_size);
+    dsettings.bow_with_sift.vocab = vocab_sift;
 end
+
+% Loading another vocabulary in case bow_with_hog will be used
+if dsettings.bow_with_hog.use
+    if ~exist('bow_hog_vocab.mat', 'file')
+        fprintf('No existing visual word vocabulary found. Computing one from training images\n')
+        vocab_hog = codebook(tr_img, dsettings.bow_with_hog.num_of_words, dsettings.bow_with_hog.NumBins, dsettings.bow_with_hog.BlockSize, dsettings.bow_with_hog.CellSize, dsettings.bow_with_hog.num_blocks);
+        save('bow_hog_vocab.mat', 'vocab_hog');
+        load('bow_hog_vocab.mat');
+    else 
+        fprintf('Loading existing vocabulary\n')
+        load('bow_hog_vocab.mat');
+    end
+    dsettings.bow_with_hog.vocab = vocab_hog;
+end
+
+Xtr = ExtractFeatureReid(tr_img, dsettings);
+Xte = ExtractFeatureReid(te_img, dsettings);
 
 Xtr = double(Xtr);
 Xte = double(Xte);
-
-if strcmp(model_name, 'sift')
-    Xtr = Xtr';
-    Xte = Xte';
-end
 
 if strcmp(useCrossVal, 'on')
     fprintf('Using crossvalidation\n')
@@ -138,23 +155,12 @@ end
 %% backpack
 fprintf('Training backpack classifier...\n')
 
-if strcmp(model_name, "two")
-    model.backpack_1 = fitcsvm(Xtr_1,Ytr.backpack);
-    model.backpack_2 = fitcsvm(Xtr_2,Ytr.backpack);
-else
-    model.backpack = fitcsvm(Xtr,Ytr.backpack,'CrossVal',useCrossVal);
-end
+
+model.backpack = fitcsvm(Xtr,Ytr.backpack,'CrossVal',useCrossVal);
+
 
 if strcmp(useCrossVal, 'off')
-    if strcmp(model_name, "two")
-        [l.backpack1,prob.backpack1] = predict(model.backpack_1,Xte_1);
-        [l.backpack2,prob.backpack2] = predict(model.backpack_2,Xte_2);
-        l.backpack = floor((l.backpack1+l.backpack2)/2);
-        prob.backpack = max(prob.backpack1(:,2),prob.backpack2(:,2));
-        prob.backpack = [-prob.backpack prob.backpack];
-    else
-        [l.backpack,prob.backpack] = predict(model.backpack,Xte);
-    end
+    [l.backpack,prob.backpack] = predict(model.backpack,Xte);
 else
     predicted = [];
     probabilities1 = [];
@@ -179,23 +185,10 @@ fprintf('The accuracy of backpack recognition is:%.2f \n', acc.backpack)
 
 %% bag
 fprintf('Training bag classifier...\n')
-if strcmp(model_name, "two")
-    model.bag_1 = fitcsvm(Xtr_1,Ytr.bag);
-    model.bag_2 = fitcsvm(Xtr_2,Ytr.bag);
-else
-    model.bag = fitcsvm(Xtr,Ytr.bag,'CrossVal',useCrossVal);
-end
 
+model.bag = fitcsvm(Xtr,Ytr.bag,'CrossVal',useCrossVal);
 if strcmp(useCrossVal, 'off')
-    if strcmp(model_name, "two")
-        [l.bag1,prob.bag1] = predict(model.bag_1,Xte_1);
-        [l.bag2,prob.bag2] = predict(model.bag_2,Xte_2);
-        l.bag = floor((l.bag1+l.bag2)/2);
-        prob.bag = max(prob.bag1(:,2),prob.bag2(:,2));
-        prob.bag = [-prob.bag prob.bag];
-    else
-        [l.bag,prob.bag] = predict(model.bag,Xte);
-    end
+    [l.bag,prob.bag] = predict(model.bag,Xte);
 else
     predicted = [];
     probabilities1 = [];
@@ -220,23 +213,9 @@ fprintf('The accuracy of bag recognition is:%.2f \n', acc.bag)
 
 %% gender
 fprintf('Training gender classifier...\n')
-if strcmp(model_name, "two")
-    model.gender_1 = fitcsvm(Xtr_1,Ytr.gender);
-    model.gender_2 = fitcsvm(Xtr_2,Ytr.gender);
-else
-    model.gender = fitcsvm(Xtr,Ytr.gender,'CrossVal',useCrossVal);
-end
-
+model.gender = fitcsvm(Xtr,Ytr.gender,'CrossVal',useCrossVal);
 if strcmp(useCrossVal, 'off')
-    if strcmp(model_name, "two")
-        [l.gender1,prob.gender1] = predict(model.gender_1,Xte_1);
-        [l.gender2,prob.gender2] = predict(model.gender_2,Xte_2);
-        l.gender = floor((l.gender1+l.gender2)/2);
-        prob.gender = max(prob.gender1(:,2),prob.gender2(:,2));
-        prob.gender = [-prob.gender prob.gender];
-    else
-        [l.gender,prob.gender] = predict(model.gender,Xte);
-    end
+    [l.gender,prob.gender] = predict(model.gender,Xte);
 else
     predicted = [];
     probabilities1 = [];
@@ -261,23 +240,9 @@ fprintf('The accuracy of gender recognition is:%.2f \n', acc.gender)
 
 %% hat
 fprintf('Training hat classifier...\n')
-if strcmp(model_name, "two")
-    model.hat_1 = fitcsvm(Xtr_1,Ytr.hat);
-    model.hat_2 = fitcsvm(Xtr_2,Ytr.hat);
-else
-    model.hat = fitcsvm(Xtr,Ytr.hat,'CrossVal',useCrossVal);
-end
-
+model.hat = fitcsvm(Xtr,Ytr.hat,'CrossVal',useCrossVal);
 if strcmp(useCrossVal, 'off')
-    if strcmp(model_name, "two")
-        [l.hat1,prob.hat1] = predict(model.hat_1,Xte_1);
-        [l.hat2,prob.hat2] = predict(model.hat_2,Xte_2);
-        l.hat = floor((l.hat1+l.hat2)/2);
-        prob.hat = max(prob.hat1(:,2),prob.hat2(:,2));
-        prob.hat = [-prob.hat prob.hat];
-    else
-        [l.hat,prob.hat] = predict(model.hat,Xte);
-    end
+    [l.hat,prob.hat] = predict(model.hat,Xte);
 else
     predicted = [];
     probabilities1 = [];
@@ -302,23 +267,9 @@ fprintf('The accuracy of hat recognition is:%.2f \n', acc.hat)
 
 %% shoes
 fprintf('Training shoes classifier...\n')
-if strcmp(model_name, "two")
-    model.shoes_1 = fitcsvm(Xtr_1,Ytr.shoes);
-    model.shoes_2 = fitcsvm(Xtr_2,Ytr.shoes);
-else
-    model.shoes = fitcsvm(Xtr,Ytr.shoes,'CrossVal',useCrossVal);
-end
-
+model.shoes = fitcsvm(Xtr,Ytr.shoes,'CrossVal',useCrossVal);
 if strcmp(useCrossVal, 'off')
-    if strcmp(model_name, "two")
-        [l.shoes1,prob.shoes1] = predict(model.shoes_1,Xte_1);
-        [l.shoes2,prob.shoes2] = predict(model.shoes_2,Xte_2);
-        l.shoes = floor((l.shoes1+l.shoes2)/2);
-        prob.shoes = max(prob.shoes1(:,2),prob.shoes2(:,2));
-        prob.shoes = [-prob.shoes prob.shoes];
-    else
-        [l.shoes,prob.shoes] = predict(model.shoes,Xte);
-    end
+    [l.shoes,prob.shoes] = predict(model.shoes,Xte);
 else
     predicted = [];
     probabilities1 = [];
@@ -343,23 +294,9 @@ fprintf('The accuracy of shoes recognition is:%.2f \n', acc.shoes)
 
 %% upred
 fprintf('Training upred classifier...\n')
-if strcmp(model_name, "two")
-    model.upred_1 = fitcsvm(Xtr_1,Ytr.upred);
-    model.upred_2 = fitcsvm(Xtr_2,Ytr.upred);
-else
-    model.upred = fitcsvm(Xtr,Ytr.upred,'CrossVal',useCrossVal);
-end
-
+model.upred = fitcsvm(Xtr,Ytr.upred,'CrossVal',useCrossVal);
 if strcmp(useCrossVal, 'off')
-    if strcmp(model_name, "two")
-        [l.upred1,prob.upred1] = predict(model.upred_1,Xte_1);
-        [l.upred2,prob.upred2] = predict(model.upred_2,Xte_2);
-        l.upred = floor((l.upred1+l.upred2)/2);
-        prob.upred = max(prob.upred1(:,2),prob.upred2(:,2));
-        prob.upred = [-prob.upred prob.upred];
-    else
-        [l.upred,prob.upred] = predict(model.upred,Xte);
-    end
+    [l.upred,prob.upred] = predict(model.upred,Xte);
 else
     predicted = [];
     probabilities1 = [];
@@ -460,5 +397,5 @@ fprintf('The average accuracy of attribute recognition is:%.2f \n', mAP)
 data_idx = [12,34,213]; % The index of image in validation set
 nPairs = 3; % number of visualize data. maximum is 3
 idx_attribute = 3;
-% nPairs = length(data_idx); 
-% visualise_attribute(te_img,prob,Yte,data_idx,nPairs, idx_attribute )
+nPairs = length(data_idx); 
+visualise_attribute(te_img,prob,Yte,data_idx,nPairs, idx_attribute )
