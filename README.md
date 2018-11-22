@@ -177,3 +177,39 @@ these are the results
 | Window 16 of hist colors with sum | No | 39% |
 | Window 16 of hist colors with sum and total | No | 40% |
 | LBP | | 36% |
+
+
+# Part 3
+
+### Baseline
+Sliding window + HOG re-id
+
+pedestrian detection is: 37.42
+
+person re-identification is: 1.11
+
+
+### Person detection
+For person detedection we used the world-famous [YOLOv2](https://pjreddie.com/darknet/yolo/). To integrate it with matlab we used the a mex-comiplable port of YOLO by [Ignacio Roco](https://github.com/ignacio-rocco/yolomex).
+
+To compile it the instructions on the [yolomex](https://github.com/ignacio-rocco/yolomex) repository were used and a GPU was used for fast computation.
+
+Note that you need to have the CUDA and CuDNN libraries installed and set up correctly on your machine.
+
+Configuration for YOLO was taken from the default [YOLOv2 website](https://pjreddie.com/darknet/yolo/). Use the `.cfg` and `.weights` files from there for better accuracy.
+
+With YOLOv2, we were able to detect pedestrians as fast as 0.016770s per image, using the power of GPU computation. Changing the threshold parameter we obtained the following results
+
+| Threshold | mAP |
+| -- | -- |
+| 0.1 | 88.45 |
+| 0.2 | 74.30 |
+| 0.25 | 71.93 |
+
+0.1 was used
+
+### Re-ID
+
+Best performance was obtained with YOLOv2 threshold = 0.1
+
+We got performance of 4.67% re-idenfication.

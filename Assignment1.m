@@ -34,7 +34,7 @@ resize_size=[128 64];
 
 disp('Person Re-id:Extracting features..')
 
-load('~/ivc/IVC_assignment-2018/data/person_re-identification/person_re-id_train.mat')
+load('data/person_re-identification/person_re-id_train.mat')
 
 dir = pwd();
 
@@ -63,31 +63,34 @@ Y_train(id1 ~= id2) = -1;
 extract_settings = struct;
 
 % parameters for correlogram
-extract_settings.correlogram.use = true;
+extract_settings.correlogram.use = false;
 extract_settings.correlogram.window = [128 64];
 extract_settings.correlogram.fun = @(block_struct) colorAutoCorrelogram(block_struct);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % parameters for colour histogram - RGB
-extract_settings.col_hist_rgb.use = true;
-extract_settings.col_hist_rgb.nbin = 4;
-extract_settings.col_hist_rgb.window = [16 16];
+extract_settings.col_hist_rgb.use = false;
+extract_settings.col_hist_rgb.use_total = false;
+extract_settings.col_hist_rgb.nbin = 30;
+extract_settings.col_hist_rgb.window = [32 32];
 extract_settings.col_hist_rgb.fun = @(block_struct) histcounts(block_struct.data, extract_settings.col_hist_rgb.nbin);
 
 % parameters for colour histogram - HSV
 extract_settings.col_hist_hsv.use = true;
-extract_settings.col_hist_hsv.nbin = 3;
-extract_settings.col_hist_hsv.window = [16 16];
-extract_settings.col_hist_hsv.h_fun = @(block_struct) histcounts(block_struct.data, 4);
-extract_settings.col_hist_hsv.s_fun = @(block_struct) histcounts(block_struct.data, 2);
-extract_settings.col_hist_hsv.v_fun = @(block_struct) histcounts(block_struct.data, 2);
+extract_settings.col_hist_hsv.use_total = true;
+extract_settings.col_hist_hsv.nbin = 80;
+extract_settings.col_hist_hsv.window = [32 16];
+extract_settings.col_hist_hsv.h_fun = @(block_struct) histcounts(block_struct.data, 60);
+extract_settings.col_hist_hsv.s_fun = @(block_struct) histcounts(block_struct.data, 15);
+extract_settings.col_hist_hsv.v_fun = @(block_struct) histcounts(block_struct.data, 30);
+% good ratio is 8 : 2 : 4
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % parameters for HoG
-extract_settings.hog.use = false;
+extract_settings.hog.use = true;
 extract_settings.hog.window = [16 16];
-extract_settings.hog.nbins = 4;
-extract_settings.hog.block_size = [2 2];
+extract_settings.hog.nbins = 30;
+extract_settings.hog.block_size = [4 4];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % parameters for LBP
@@ -114,6 +117,17 @@ extract_settings.mscr.p.min_size = 40;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 
 %%%%% Feature extraction of X_train_1
+
+nbins = [10 15 20 30 40 50];
+windows = [16 16; 32 16; 32 32];
+
+% for w = 1:length(windows)
+%     extract_settings.col_hist_rgb.window = windows(w,:);
+%     
+%     for n = 1:length(nbins)
+%         extract_settings.col_hist_rgb.nbin = nbins(n);
+%         extract_settings.col_hist_rgb.fun = @(block_struct) histcounts(block_struct.data, extract_settings.col_hist_rgb.nbin);
+        
 X_train_1 = [];
 
 for i = 1:length(image1)
@@ -140,8 +154,8 @@ X_train = double(abs(X_train_1 - X_train_2));
 % Try to train a better classifier.
 %==========================================================================#
 disp('Fitting model')
-
-model = fitcsvm(X_train, Y_train, 'KernelScale','auto','Standardize',true,'OutlierFraction',0.09, 'Nu',0.22);
+rng default
+model = fitcsvm(X_train, Y_train, 'KernelScale','auto','Standardize',true,'OutlierFraction',0.09, 'Nu',0.25);
 
 save('person_reid_model.mat','model');
 save('person_reid_settings.mat', 'extract_settings');
@@ -154,7 +168,7 @@ save('person_reid_settings.mat', 'extract_settings');
 % gallery images.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-load('~/ivc/IVC_assignment-2018/data/person_re-identification/person_re-id_test.mat')
+load('data/person_re-identification/person_re-id_test.mat')
 
 image_query = {query(:).image}';
 id_query = [query(:).id]';
@@ -209,15 +223,20 @@ for i = 1:num_query
 end
 
 mAP = mean(ap);
-fprintf('The mean Average Precision of person re-identification is:%.2f \n', mAP * 100)
+% fprintf(' using settings window = %d %d, nbin = %d\n', windows(w, 1), windows(w,2), nbins(n));
+fprintf('The mean Average Precision of person re-identification is:%.2f \n\n', mAP * 100)
+       
+%     end
+% end
+
 
 %% Visualization the result of person re-id
 
-query_idx = [2,15,26]; 
-gallery_idx = [2, 1, 45];
-l_ = reshape(l(:), [90, 30])';
-Y_test_ = reshape(Y_test, [90, 30])';
-nPairs = 3; % number of visualize data. maximum is 3
-% nPairs = length(data_idx); 
-visualise_reid(image_query, image_gallery, query_idx, gallery_idx, l_, Y_test_, nPairs )
+% query_idx = [2,15,26]; 
+% gallery_idx = [2, 1, 45];
+% l_ = reshape(l(:), [90, 30])';
+% Y_test_ = reshape(Y_test, [90, 30])';
+% nPairs = 3; % number of visualize data. maximum is 3
+% % nPairs = length(data_idx); 
+% visualise_reid(image_query, image_gallery, query_idx, gallery_idx, l_, Y_test_, nPairs )
 

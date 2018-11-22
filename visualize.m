@@ -1,0 +1,13 @@
+function visualize (I,gt)%detections)
+figure(1);clf;imshow(I);
+hold on;
+
+plot([[gt(1)]; [gt(1) + gt(3)]; [gt(1) + gt(3)]; [gt(1)]         ;[gt(1)]],...
+     [[gt(2)]; [gt(1)]        ; [gt(2) + gt(4)]; [gt(2) + gt(4)] ;[gt(2)]],...
+     'LineWidth',3, 'Color', 'r');
+ 
+% plot([[detections.left];[detections.right];[detections.right];[detections.left];[detections.left]],...
+%      [[detections.top];[detections.top];[detections.bottom];[detections.bottom];[detections.top]],...
+%      'LineWidth',3, 'Color', 'b');
+end
+

@@ -34,7 +34,7 @@ load('./data/people_search/people_search.mat');
 gallery_image_size = [540, 960];
 resize_size_reid = [128, 64];
 resize_detector = [150, 50];
-threshold_detect = 0.2;
+threshold_detect = 0.2;    
 threshold_nms = 0.5;
 % num of positive training images
 num_persons = 600;
@@ -69,6 +69,8 @@ image_gallery = {};
 gallery_bbox = {};
 gallery_score = {};
 
+letsyolo();
+
 num_gallery = length(gallery);
 
 %% Single/Multi-Scale Sliding Window
@@ -79,22 +81,24 @@ num_gallery = length(gallery);
 % window due to the different person size in real image.
 %                                (You should finish this part by yourself)
 %==========================================================================
-window_size = [50, 150];
+% window_size = [50, 150];
+% 
+% for i = 1:num_gallery
+%     img = imresize(gallery(i).image, gallery_image_size, 'bilinear');
+%     [H, W, ~] = size(gallery(i).image);
+%     gallery(i).gt_bbox = adjust_bbox(gallery(i).gt_bbox, W, H, gallery_image_size(2), gallery_image_size(1));
+%     % use your detector to detect perdestrian in img
+%     [bbox, score] = window(window_size,img,svm_model1, threshold_detect);
+%     % use the NMS function you have inplemented to reduce duplicate
+%     % bounding boxes
+%     [bbox, score] = NMS(bbox, score, threshold_nms);
+%     % store detected bounding boxes and scores
+%     gallery_bbox{i} = bbox;
+%     gallery_score{i} = score;
+% %     temp_draw_box(img_test,bbox);
+% end
 
-for i = 1:num_gallery
-    img = imresize(gallery(i).image, gallery_image_size, 'bilinear');
-    [H, W, ~] = size(gallery(i).image);
-    gallery(i).gt_bbox = adjust_bbox(gallery(i).gt_bbox, W, H, gallery_image_size(2), gallery_image_size(1));
-    % use your detector to detect perdestrian in img
-    [bbox, score] = window(window_size,img,svm_model1, threshold_detect);
-    % use the NMS function you have inplemented to reduce duplicate
-    % bounding boxes
-    [bbox, score] = NMS(bbox, score, threshold_nms);
-    % store detected bounding boxes and scores
-    gallery_bbox{i} = bbox;
-    gallery_score{i} = score;
-%     temp_draw_box(img_test,bbox);
-end
+[gallery_score, gallery_bbox, ppl_images, detections] = yolo_detect(gallery, gallery_image_size, 0.1, 0.5);
 
 
 %% Evaluating your result on the person search data via mAP
@@ -115,16 +119,17 @@ fprintf('The mean Average Precision of pedestrian detection is:%.2f \n', mAP_det
 %==========================================================================
 
 load('person_reid_model.mat');
+load('person_reid_settings.mat');
 
 %% crop candidates from gallery images
 id_gallery = [];
 frame = [];
-image_gallery = {};
+image_gallery = ppl_images;
 num_gallery = length(gallery);
 for i = 1:num_gallery
-    img = imresize(gallery(i).image, gallery_image_size, 'bilinear');
-    gallery_img_ = crop_bbox(img, gallery_bbox{i});
-    image_gallery = cat(1,image_gallery, gallery_img_);
+%     img = imresize(gallery(i).image, gallery_image_size, 'bilinear');
+%     gallery_img_ = crop_bbox(img, gallery_bbox{i});
+%     image_gallery = cat(1,image_gallery, gallery_img_);
     id_ = get_id(gallery_bbox{i}, gallery(i).gt_bbox, gallery(i).id_bbox);
     id_gallery = [id_gallery; id_];
 end
@@ -135,12 +140,16 @@ num_query = length(image_query);
 num_gallery = length(image_gallery);
 
 % Extracting query features
-[Xq, ~] = ExtractFeatureReid(image_query, resize_size_reid);
+Xq = [];
+for i = 1:length(image_query)
+    Xq(i, :) = ExtractFeaturesPart1(image_query{i}, resize_size_reid, extract_settings);
+end
 
 % Extracting gallery features
-
-[Xg, ~] = ExtractFeatureReid(image_gallery, resize_size_reid);
-
+Xg = [];
+for i = 1:length(image_gallery)
+    Xg(i, :) = ExtractFeaturesPart1(image_gallery{i}, resize_size_reid, extract_settings);
+end
 
 % Constructing query-gallery pairs and label vector
 Xte = [];
@@ -176,3 +185,9 @@ fprintf('The mean Average Precision of person re-identification is:%.2f \n', mAP
 
 %% Try to visualize the results by yourself
 %==========================================================================
+
+
+
+for i = 1:length(image_query)
+    imshow(image_query{i})
+end

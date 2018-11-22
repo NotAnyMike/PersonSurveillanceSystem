@@ -1,11 +1,20 @@
-function [tmp] = ExtractFeaturesPart1(img, extract_settings)
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+function [tmp] = ExtractFeaturesPart1(img, imsize, extract_settings)
+%ExtractFeaturesPart1 - Extracts various features based on settings passed
+%   Based on settings fed, extracts:
+%      - Correlogram
+%      - RGB Colour histogram
+%      - HSV Colour histogram
+%      - Histogram of Orientatio Gradients (HOG)
+%      - Local Binary Features (LBP)
+%      - SIFT
+%      - MSCR
+
+img = imresize(img,imsize,'bilinear');
 
 img_grey = rgb2gray(img);
 tmp = [];  % empty placeholder array for features
 
-if (extract_settings.col_hist_rgb.use)
+if (extract_settings.correlogram.use)
     correlogram_features = blockproc(img, extract_settings.correlogram.window, extract_settings.correlogram.fun);
     tmp = [tmp, correlogram_features(:)'];
 end
@@ -17,7 +26,12 @@ if (extract_settings.col_hist_rgb.use)
     g = g(:)';
     b = blockproc(img(:,:,3), extract_settings.col_hist_rgb.window, extract_settings.col_hist_rgb.fun);
     b = b(:)';
-    colour_features = [r g b];
+    t = histcounts(img, extract_settings.col_hist_rgb.nbin);
+    if(extract_settings.col_hist_rgb.use_total)
+        colour_features = [r g b t];
+    else
+        colour_features = [r g b];
+    end
     colour_features = colour_features / sum(colour_features);
     tmp = [tmp, colour_features];
 end
@@ -31,7 +45,11 @@ if (extract_settings.col_hist_hsv.use)
     v = blockproc(img_hsv(:,:,3), extract_settings.col_hist_hsv.window, extract_settings.col_hist_hsv.v_fun);
     v = v(:)';
     t = histcounts(img_hsv, extract_settings.col_hist_hsv.nbin);
-    colour_features = [h s t];
+    if(extract_settings.col_hist_hsv.use_total)
+        colour_features = [h s v t];
+    else
+        colour_features = [h s v];
+    end
     colour_features = colour_features / sum(colour_features);
     tmp = [tmp, colour_features];
 end
