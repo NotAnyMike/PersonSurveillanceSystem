@@ -153,11 +153,6 @@ is_upright = true;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ```
 
-
-## Things to try
-
-** Colors are very useful **
-
 ## Results (Module 2)
 
 these are the results
