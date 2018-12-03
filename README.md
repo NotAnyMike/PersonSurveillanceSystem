@@ -1,6 +1,8 @@
 # Person Surveillance System
 
-Implementation of a Person Surveillance System on python, it should be able tell given two images of persons if they are the same person, the second module should be able to given some text attributes (hat, woman, etc.) retrive an images with such attributes
+Implementation of a Person Surveillance System on python, it should be able tell given two images of persons if they are the same person, the second module should be able to given some text attributes (hat, woman, etc.) retrive an images with such attributes. The final output of this project can be seen in the following gif, that is only the person identification part, under the hood the system maches whether or not some identified person is the same as the person you are looking for
+
+![final output in good quality optimized](./finaloutputop.gif)
 
 ## Part 1 - Re-identification
 The idea here is to take 2 pictures of people, extract features from both and see how they compare to each other. There are several possible ways to do that. Some discussed in the course are:
